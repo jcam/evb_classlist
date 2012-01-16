@@ -330,9 +330,13 @@ class ClassList {
 		return strnatcmp($this->tickets[$a], $this->tickets[$b]);
 	}
 
-	private function updateInstructors ($instructorfile) {
+	private function updateInstructors () {
+		if ( !file_exists($this->instructorfile)) {
+			$this->error('Error reading instructors');
+		}
+
+		$fd = fopen($this->instructorfile, "w");
 		uasort($this->instructors,array($this, 'compare_name'));
-		$fd = fopen($instructorfile, "w");
 		foreach ( $this->instructors as $instructor ) {
 			fputcsv ($fd, $instructor);
 		}
