@@ -381,7 +381,7 @@ class ClassList {
 		foreach ( $xml->event as $event ) {
 			preg_match ('/Instructor Biography.*?ALT="([\w\s-]*?)"/s', $event->description, $groups);
 			if ( $groups[1] == '' ) {
-				preg_match ('/Instructor Biography.*?<P>(\w*\s*\w*)/s', $event->description, $groups);
+				preg_match ('/Instructor Biography.*?<P>(?:<SPAN CLASS="notranslate">)?(\w*\s*\w*)/s', $event->description, $groups);
 			}
 			if ( $groups[1] != '' ) {
 				$groups[1] .= ': ';
