@@ -378,7 +378,7 @@ class ClassList {
 		}
 		$mail->IsHTML(false);
 		$mail->Body = str_replace("[INSTRUCTOR_NAME]", $this->instructors[$instructor]['name'], $mail->Body);
-		$mail->Body = str_replace("[INSTRUCTOR_LINK]", "{$_SERVER['PHP_SELF']}?instructor_id=$instructor", $mail->Body);
+		$mail->Body = str_replace("[INSTRUCTOR_LINK]", "http://{$_SERVER['SERVER_NAME']}{$_SERVER['PHP_SELF']}?instructor_id=$instructor", $mail->Body);
 	
 		if(!$mail->Send()) {
 			$this->error("Mailer Error: " . $mail->ErrorInfo);
