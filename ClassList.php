@@ -47,7 +47,7 @@ class ClassList {
 
 		$fd = fopen($this->classfile, "r");
 		while (( $row = fgetcsv($fd, 1024)) != FALSE) {
-			if ( $row[0] == $instructor_id ) {
+			if ( $row[0] == $instructor_id || $instructor_id == Config::view_all_id ) {
 				$events[]=$row[1];
 			}
 		}
@@ -141,7 +141,9 @@ class ClassList {
 		print "<html><head><title>Class List Management</title></head><body>\n";
 
 		foreach ( $this->instructors as $instructor ) {
-			$selections .= "<option value='{$instructor['id']}'>{$instructor['name']} &lt;{$instructor['email']}&gt;</option>\n";
+			if($instructor['id'] != Config::view_all_id) {
+				$selections .= "<option value='{$instructor['id']}'>{$instructor['name']} &lt;{$instructor['email']}&gt;</option>\n";
+			}
 		}
 	
 		foreach ( $events as $event ) {
@@ -286,7 +288,7 @@ class ClassList {
 		}
 	
 		if ( isset ( $_POST['btnemail'] )) {
-			$this->classMailer($_POST['instructor']);
+			$this->classMailer($_POST['instructor'], 'first');
 		}
 	
 		if ( isset ( $_POST['btnupdateevents'] )) {
@@ -297,7 +299,7 @@ class ClassList {
 			foreach ($this->instructors as $instructor) {
 				foreach ($classes as $class) {
 					if ($class['instructor'] == $instructor['id']) {
-						$this->classMailer($instructor['id']);
+						$this->classMailer($instructor['id'], 'all');
 						break;
 					}
 				}
@@ -352,7 +354,7 @@ class ClassList {
 		fclose($fd);
 	}
 
-	private function classMailer ($instructor) {
+	private function classMailer ($instructor, $type) {
 		$mail = new PHPMailer();
 		$mail->IsSMTP();
 		$mail->SMTPAuth   = true;
@@ -365,12 +367,18 @@ class ClassList {
 
 		$mail->From       = Config::email_from;
 		$mail->FromName   = Config::email_from_name;
-		$mail->Subject    = Config::email_subject;
 		$mail->AddAddress($this->instructors[$instructor]['email'],$this->instructors[$instructor]['name']);
-		$mail->AddCC(Config::email_cc, Config::email_cc_name);
+		if($type == "first") {
+			$mail->AddCC(Config::email_cc, Config::email_cc_name);
+			$mail->Subject = Config::email_subject_first;
+			$mail->Body = Config::email_body_first;
+		} elseif($type == "all") {
+			$mail->Subject = Config::email_subject_all;
+			$mail->Body = Config::email_body_all;
+		}
 		$mail->IsHTML(false);
-		$mail->Body 	  = $this->instructors[$instructor]['name'] . Config::email_body_a . $instructor .
-			Config::email_body_b;
+		$mail->Body = str_replace("[INSTRUCTOR_NAME]", $this->instructors[$instructor]['name'], $mail->Body);
+		$mail->Body = str_replace("[INSTRUCTOR_LINK]", "{$_SERVER['PHP_SELF']}?instructor_id=$instructor", $mail->Body);
 	
 		if(!$mail->Send()) {
 			$this->error("Mailer Error: " . $mail->ErrorInfo);
